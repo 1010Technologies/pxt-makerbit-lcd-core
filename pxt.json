@@ -1,0 +1,17 @@
+{
+    "name": "MakerBit-LCD-core",
+    "version": "0.0.1",
+    "description": "MakeCode extension for I2C LCD 1602 and 2004 displays",
+    "license": "MIT",
+    "dependencies": {
+        "core": "*"
+    },
+    "files": [
+        "README.md",
+        "lcd-core.ts"
+    ],
+    "testFiles": [
+        "test.ts"
+    ],
+    "public": true
+}
