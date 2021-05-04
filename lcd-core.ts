@@ -100,7 +100,7 @@ namespace makerbit {
     sendCommand(0x80 | (offsets[line] + column));
   }
 
-  function updateCharacterBuffer(
+  export function updateCharacterBuffer(
     text: string,
     offset: number,
     length: number,
@@ -216,7 +216,7 @@ namespace makerbit {
     }
   }
 
-  function toAlignment(option?: TextOption): TextAlignment {
+  export function toAlignment(option?: TextOption): TextAlignment {
     if (
       option === TextOption.AlignRight ||
       option === TextOption.PadWithZeros
@@ -229,7 +229,7 @@ namespace makerbit {
     }
   }
 
-  function toPad(option?: TextOption): string {
+  export function toPad(option?: TextOption): string {
     if (option === TextOption.PadWithZeros) {
       return "0";
     } else {
