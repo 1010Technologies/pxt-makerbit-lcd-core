@@ -1,0 +1,13 @@
+{
+  "LcdBacklight.Off|block": "off",
+  "LcdBacklight.On|block": "on",
+  "TextAlignment.Left|block": "left-aligned",
+  "TextAlignment.Right|block": "right-aligned",
+  "TextOption.AlignLeft|block": "align left",
+  "TextOption.AlignRight|block": "align right",
+  "TextOption.PadWithZeros|block": "pad with zeros",
+  "makerbit.connectLcd|block": "connect LCD at I2C address %i2cAddress",
+  "makerbit.isLcdConnected|block": "LCD is connected",
+  "makerbit.setLcdBacklight|block": "switch LCD backlight %backlight",
+  "makerbit|block": "MakerBit"
+}

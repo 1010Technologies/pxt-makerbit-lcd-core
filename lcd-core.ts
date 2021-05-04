@@ -243,7 +243,7 @@ namespace makerbit {
    */
   //% subcategory="LCD"
   //% blockId="makerbit_lcd_backlight" block="switch LCD backlight %backlight"
-  //% weight=79
+  //% weight=50
   export function setLcdBacklight(backlight: LcdBacklight): void {
     if (!lcdState && !connect()) {
       return;
