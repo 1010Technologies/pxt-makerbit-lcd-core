@@ -142,6 +142,10 @@ namespace makerbit {
       return;
     }
 
+    if (offset < 0) {
+      offset = 0;
+    }
+
     const fillCharacter =
       pad.length > 0 ? pad.charCodeAt(0) : " ".charCodeAt(0);
 
