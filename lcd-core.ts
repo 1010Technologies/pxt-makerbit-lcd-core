@@ -25,6 +25,25 @@ const enum TextOption {
   PadWithZeros
 }
 
+const enum LcdChar {
+  //% block="1"
+  c1 = 0,
+  //% block="2"
+  c2 = 1,
+  //% block="3"
+  c3 = 2,
+  //% block="4"
+  c4 = 3,
+  //% block="5"
+  c5 = 4,
+  //% block="6"
+  c6 = 5,
+  //% block="7"
+  c7 = 6,
+  //% block="8"
+  c8 = 7
+}
+
 namespace makerbit {
   const enum Lcd {
     Command = 0,
@@ -264,7 +283,7 @@ namespace makerbit {
   //% subcategory="LCD"
   //% blockId="makerbit_lcd_set_address" block="connect LCD at I2C address %i2cAddress"
   //% i2cAddress.min=0 i2cAddress.max=127
-  //% weight=70
+  //% weight=100
   export function connectLcd(i2cAddress: number): void {
 
     if (lcdState && lcdState.i2cAddress == i2cAddress) {
@@ -347,5 +366,64 @@ namespace makerbit {
   //% weight=69
   export function isLcdConnected(): boolean {
     return !!lcdState || connect();
+  }
+
+  /**
+   * Create a custom LCD character using a 5x8 pixel matrix.
+   */
+  //% subcategory="LCD"
+  //% blockId="makerbit_lcd_makecustomchar"
+  //% block="make custom character %char|%im"
+  //% weight=60
+  export function lcdMakeCustomChar(char: LcdChar, im: Image): void {
+    const customChar = [0, 0, 0, 0, 0, 0, 0, 0];
+    for(let y = 0; y < 8; y++) {
+      for(let x = 0; x < 5; x++) {
+        if (im.pixel(x, y)) {
+          customChar[y] |= 1 << (4 - x)
+        }
+      }
+    }
+    const LCD_SETCGRAMADDR = 0x40;
+    sendCommand(LCD_SETCGRAMADDR | (char << 3));
+    for (let y = 0; y < 8; y++) {
+      sendData(customChar[y]);
+    }
+    control.waitMicros(1000);
+  }
+
+  /**
+   * Create a 5x8 pixel matrix for use as a custom character.
+   */
+  //% subcategory="LCD"
+  //% blockId="makerbit_lcd_customchar"
+  //% block="pixels"
+  //% imageLiteral=1
+  //% imageLiteralColumns=5
+  //% imageLiteralRows=8
+  //% imageLiteralScale=0.6
+  //% shim=images::createImage
+  //% weight=59
+  export function lcdCustomChar(i: string): Image {
+      return <Image><any>i;
+  }
+
+  export function setCharacter(char: number, offset: number,
+    columns: number, rows: number): void {
+    if (!lcdState) {
+        return;
+    }
+    if (lcdState.columns === 0) {
+      updateCharacterBuffer(
+        "",
+        0,
+        columns*rows,
+        columns,
+        rows,
+        TextAlignment.Left,
+        " "
+      );
+    }
+    lcdState.characters[offset] = char;
   }
 }
