@@ -425,5 +425,7 @@ namespace makerbit {
       );
     }
     lcdState.characters[offset] = char;
+    setCursor(Math.idiv(offset, lcdState.columns), offset % lcdState.columns);
+    sendData(char);
   }
 }
