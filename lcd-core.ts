@@ -372,10 +372,10 @@ namespace makerbit {
    * Create a custom LCD character using a 5x8 pixel matrix.
    */
   //% subcategory="LCD"
-  //% blockId="makerbit_lcd_makecustomchar"
-  //% block="make custom character %char|%im"
+  //% blockId="makerbit_lcd_makecharacter"
+  //% block="make character %char|%im"
   //% weight=60
-  export function lcdMakeCustomChar(char: LcdChar, im: Image): void {
+  export function lcdMakeCharacter(char: LcdChar, im: Image): void {
     const customChar = [0, 0, 0, 0, 0, 0, 0, 0];
     for(let y = 0; y < 8; y++) {
       for(let x = 0; x < 5; x++) {
@@ -396,7 +396,7 @@ namespace makerbit {
    * Create a 5x8 pixel matrix for use as a custom character.
    */
   //% subcategory="LCD"
-  //% blockId="makerbit_lcd_customchar"
+  //% blockId="makerbit_lcd_characterpixels"
   //% block="pixels"
   //% imageLiteral=1
   //% imageLiteralColumns=5
@@ -404,7 +404,7 @@ namespace makerbit {
   //% imageLiteralScale=0.6
   //% shim=images::createImage
   //% weight=59
-  export function lcdCustomChar(i: string): Image {
+  export function lcdCharacterPixels(i: string): Image {
       return <Image><any>i;
   }
 
