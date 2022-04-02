@@ -397,7 +397,7 @@ namespace makerbit {
    */
   //% subcategory="LCD"
   //% blockId="makerbit_lcd_characterpixels"
-  //% block="pixels"
+  //% block="character"
   //% imageLiteral=1
   //% imageLiteralColumns=5
   //% imageLiteralRows=8
