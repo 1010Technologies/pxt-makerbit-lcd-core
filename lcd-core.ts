@@ -121,7 +121,7 @@ namespace makerbit {
 
   function requestRedraw() {
     if (!lcdState.refreshIntervalId) {
-      lcdState.refreshIntervalId = control.setInterval(refreshDisplay, 400, control.IntervalMode.Timeout)
+      lcdState.refreshIntervalId = control.setInterval(refreshDisplay, 100, control.IntervalMode.Timeout)
     }
     basic.pause(0); // Allow refreshDisplay to run, even if called in a tight loop
   }
