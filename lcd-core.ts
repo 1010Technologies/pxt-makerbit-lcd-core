@@ -56,7 +56,7 @@ namespace makerbit {
     characters: Buffer;
     rows: uint8;
     columns: uint8;
-    lineNeedsUpdate: uint8;
+    rowNeedsUpdate: uint8;
     refreshIntervalId: number;
     sendBuffer: Buffer;
   }
@@ -119,24 +119,15 @@ namespace makerbit {
     sendCommand(0x80 | (offsets[line] + column));
   }
 
-  export function updateCharacterBuffer(
-    text: string,
-    offset: number,
-    length: number,
-    columns: number,
-    rows: number,
-    alignment: TextAlignment,
-    pad: string
-  ): void {
-    if (!lcdState && !connect()) {
-      return;
-    }
-
+  function requestRedraw() {
     if (!lcdState.refreshIntervalId) {
       lcdState.refreshIntervalId = control.setInterval(refreshDisplay, 400, control.IntervalMode.Timeout)
     }
+    basic.pause(0); // Allow refreshDisplay to run, even if called in a tight loop
+  }
 
-    if (lcdState.columns === 0) {
+  function initBuffer(columns: number, rows: number) {
+    if (lcdState && lcdState.columns === 0) {
       lcdState.columns = columns;
       lcdState.rows = rows;
       lcdState.characters = pins.createBuffer(lcdState.rows * lcdState.columns);
@@ -156,6 +147,22 @@ namespace makerbit {
         " "
       );
     }
+  }
+
+  export function updateCharacterBuffer(
+    text: string,
+    offset: number,
+    length: number,
+    columns: number,
+    rows: number,
+    alignment: TextAlignment,
+    pad: string
+  ): void {
+    if (!lcdState && !connect()) {
+      return;
+    }
+
+    initBuffer(columns, rows);
 
     if (columns !== lcdState.columns || rows !== lcdState.rows) {
       return;
@@ -187,7 +194,7 @@ namespace makerbit {
     while (lcdPos < paddingEnd) {
       if (lcdState.characters[lcdPos] != fillCharacter) {
         lcdState.characters[lcdPos] = fillCharacter;
-        lcdState.lineNeedsUpdate |= (1 << Math.idiv(lcdPos, lcdState.columns))
+        invalidateLcdPosition(lcdPos);
       }
       lcdPos++;
     }
@@ -199,7 +206,7 @@ namespace makerbit {
 
       if (lcdState.characters[lcdPos] != text.charCodeAt(textPosition)) {
         lcdState.characters[lcdPos] = text.charCodeAt(textPosition);
-        lcdState.lineNeedsUpdate |= (1 << Math.idiv(lcdPos, lcdState.columns))
+        invalidateLcdPosition(lcdPos);
       }
       lcdPos++;
       textPosition++;
@@ -209,18 +216,18 @@ namespace makerbit {
     while (lcdPos < endPosition) {
       if (lcdState.characters[lcdPos] != fillCharacter) {
         lcdState.characters[lcdPos] = fillCharacter;
-        lcdState.lineNeedsUpdate |= (1 << Math.idiv(lcdPos, lcdState.columns))
+        invalidateLcdPosition(lcdPos);
       }
       lcdPos++;
     }
 
-    basic.pause(0); // Allow refreshDisplay to run, even if called in a tight loop
+    requestRedraw();
   }
 
-  function sendLineRepeated(line: number): void {
-    setCursor(line, 0);
+  function sendRowRepeated(row: number): void {
+    setCursor(row, 0);
 
-    for (let position = lcdState.columns * line; position < lcdState.columns * (line + 1); position++) {
+    for (let position = lcdState.columns * row; position < lcdState.columns * (row + 1); position++) {
       sendData(lcdState.characters[position]);
     }
   }
@@ -232,9 +239,9 @@ namespace makerbit {
     lcdState.refreshIntervalId = undefined
 
     for (let i = 0; i < lcdState.rows; i++) {
-      if (lcdState.lineNeedsUpdate & 1 << i) {
-        lcdState.lineNeedsUpdate &= ~(1 << i)
-        sendLineRepeated(i)
+      if (lcdState.rowNeedsUpdate & 1 << i) {
+        lcdState.rowNeedsUpdate &= ~(1 << i)
+        sendRowRepeated(i)
       }
     }
   }
@@ -301,7 +308,7 @@ namespace makerbit {
       columns: 0,
       rows: 0,
       characters: undefined,
-      lineNeedsUpdate: 0,
+      rowNeedsUpdate: 0,
       refreshIntervalId: undefined,
       sendBuffer: pins.createBuffer(6 * pins.sizeOf(NumberFormat.Int8LE))
     };
@@ -376,9 +383,13 @@ namespace makerbit {
   //% block="make character %char|%im"
   //% weight=60
   export function lcdMakeCharacter(char: LcdChar, im: Image): void {
+    if (!lcdState && !connect()) {
+      return;
+    }
+
     const customChar = [0, 0, 0, 0, 0, 0, 0, 0];
-    for(let y = 0; y < 8; y++) {
-      for(let x = 0; x < 5; x++) {
+    for (let y = 0; y < 8; y++) {
+      for (let x = 0; x < 5; x++) {
         if (im.pixel(x, y)) {
           customChar[y] |= 1 << (4 - x)
         }
@@ -410,22 +421,26 @@ namespace makerbit {
 
   export function setCharacter(char: number, offset: number,
     columns: number, rows: number): void {
-    if (!lcdState) {
+      if (!lcdState && !connect()) {
         return;
     }
-    if (lcdState.columns === 0) {
-      updateCharacterBuffer(
-        "",
-        0,
-        columns*rows,
-        columns,
-        rows,
-        TextAlignment.Left,
-        " "
-      );
+
+    initBuffer(columns, rows);
+
+    if (columns !== lcdState.columns || rows !== lcdState.rows) {
+        return;
     }
+
+    if (offset < 0 || offset >= lcdState.rows * lcdState.columns) {
+        return;
+    }
+
     lcdState.characters[offset] = char;
-    setCursor(Math.idiv(offset, lcdState.columns), offset % lcdState.columns);
-    sendData(char);
+    invalidateLcdPosition(offset);
+    requestRedraw();
+  }
+
+  function invalidateLcdPosition(lcdPos: number) {
+    lcdState.rowNeedsUpdate |= (1 << Math.idiv(lcdPos, lcdState.columns))
   }
 }
